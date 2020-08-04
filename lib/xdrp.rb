@@ -67,7 +67,7 @@ module Xdrp
           @a << [modifier.first, {key: key}] if modifier.length < 2  
         end
         
-        @a.last.last.gsub('{space}',' ')
+        @a.last.last.gsub!('{space}',' ')
 
       else
 
