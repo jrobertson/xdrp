@@ -16,7 +16,7 @@ MOUSE = 1
 KEYBOARD = 2
 KEYBOARD_MOUSE = 3
 
-
+  
 module Xdrp
 
   class Recorder
@@ -62,12 +62,39 @@ module Xdrp
       if @a.length >= 1 and @a[-1][0] == :type then
 
         if modifier.nil? or (modifier and modifier.empty?) then
-          @a[-1][2] += key.to_s
+          @a[-1][2] += key.to_s.sub('{space}', ' ')
         else
-          @a << [modifier.first, {key: key}] if modifier.length < 2  
-        end
-        
-        @a.last.last.gsub!('{space}',' ')
+          
+          if modifier.length < 2  then
+            
+            if modifier.first == :shift and (keycode.between?(10,21) \
+                                             or keycode.between?(24,35) \
+                                             or keycode.between?(38,48)) then
+              
+              char = if key.to_s =~ /[a-z]/ then
+                key.to_s.upcase
+              elsif key.to_s =~ /[0-9]/
+                %w[) ! " £ $ % ^ & * ( ][key.to_s.to_i]
+              else
+                                
+                lsym = %w(` - = [ ] ; ' # \ , . /)
+                
+                if lsym.include? key.to_s then
+
+                  usym = %w(¬ _ + { } : @ ~ | < > ?)
+                  lsym.zip(usym).to_h[key.to_s]
+
+                end
+
+              end
+              
+              @a[-1][2] += char
+              
+            else
+              @a << [modifier.first, {key: key}] 
+            end
+          end
+        end        
 
       else
 
@@ -77,7 +104,7 @@ module Xdrp
         when 'tab'
           [:tab]
         else
-          [:type, {}, key.to_s]
+          [:type, {}, key.to_s.sub(/\{space\}/, ' ')]
         end
 
         @a << a
