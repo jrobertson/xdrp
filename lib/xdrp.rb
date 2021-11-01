@@ -5,11 +5,14 @@
 # description: A basic macro recorder for GNU/Linux which uses 
 #              program xinput to capture input events.
 
+require 'wmctrl'
 require 'rxfhelper'
+require 'keystroker'
 require "xdo/mouse"
 require "xdo/xwindow"
 require "xdo/keyboard"
 require 'xinput_wrapper'
+
 
 
 MOUSE = 1
