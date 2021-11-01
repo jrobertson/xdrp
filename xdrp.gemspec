@@ -1,6 +1,6 @@
 Gem::Specification.new do |s|
   s.name = 'xdrp'
-  s.version = '0.2.0'
+  s.version = '0.2.1'
   s.summary = 'A basic macro recorder for GNU/Linux which uses program ' + 
       'xinput to capture input events.'
   s.authors = ['James Robertson']

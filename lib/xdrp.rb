@@ -33,8 +33,6 @@ module Xdrp
 
     def initialize(levelx=KEYBOARD_MOUSE, level: levelx, debug: false)
       
-      @xiw = XInputWrapper.new(verbose: true, debug: debug, callback: self)
-
       @mouse, @keyboard = false, false
       
       case level
@@ -45,6 +43,13 @@ module Xdrp
       when 3
         @mouse, @keyboard = true, true
       end
+
+
+      @xiw = XInputWrapper.new(verbose: true, debug: debug, callback: self)
+      
+      @wm = WMCtrl.display
+      @win_title = ''
+      
     end
 
     def on_keypress(key, keycode, modifier=nil)      
@@ -80,12 +85,12 @@ module Xdrp
                 %w[) ! " £ $ % ^ & * ( ][key.to_s.to_i]
               else
                                 
-                lsym = %w(` - = [ ] ; ' # \ , . /)
+                lsym = %i(` - = [ ] ; ' # \ , . /)
                 
-                if lsym.include? key.to_s then
+                if lsym.include? key then
 
                   usym = %w(¬ _ + { } : @ ~ | < > ?)
-                  lsym.zip(usym).to_h[key.to_s]
+                  lsym.zip(usym).to_h[key]
 
                 end
 
@@ -118,7 +123,8 @@ module Xdrp
 
     def on_mousedown(button, x, y)
 
-      return unless @mouse
+      return unless @mouse      
+      monitor_app()      
       
       puts "mouse %s button down at %s, %s" % [button, x, y] if @debug
       add_sleep() if Time.now > (@t1 + 2)
@@ -129,7 +135,6 @@ module Xdrp
     def on_mouseup(button, x, y)
       
       return unless @mouse
-      
       puts "mouse %s button up at %s, %s" % [button, x, y] if @debug
     end
 
@@ -194,6 +199,17 @@ module Xdrp
       @a << [:sleep, {duration: (Time.now - @t1).round}]
       @t1 = Time.now
     end
+    
+    def monitor_app()      
+
+      win = @wm.windows.find {|x| x.active}    
+      
+      if win.title != @win_title then
+        @win_title = win.title
+        @a << [:window, {activate: win.title}]
+      end
+      
+    end
 
   end
 
@@ -202,7 +218,8 @@ module Xdrp
     def initialize(src, debug: false)
 
       @debug = debug
-      @doc = Rexle.new(RXFHelper.read(src).first)
+      @doc = Keystroker.new(src, debug: debug).to_doc
+      puts '@doc.xml: ' + @doc.xml if @debug
 
     end
 
@@ -238,13 +255,22 @@ module Xdrp
       sleep duration.to_f
     end
 
-    def xdo_tab(h={})
-      XDo::Keyboard.tab
+    def xdo_tab(times: 1)
+      times.to_i.times.each { XDo::Keyboard.tab }
     end
 
     def xdo_type(s)
       XDo::Keyboard.simulate(s.gsub('{enter}', "\n"))
     end
+    
+    def xdo_window(activate: '')
+      
+      wm = WMCtrl.display
+      window = wm.windows.find {|x| x.title == activate}
+      window.activate
+      
+    end
+    
 
   end
 
